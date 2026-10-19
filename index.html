@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>回味 · 美食记录</title>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --card: #ffffff;
+      --ink: #2b2620;
+      --muted: #8a8178;
+      --line: #ece5dc;
+      --accent: #e4572e;
+      --accent-soft: #fde8df;
+      --green: #2f9e6e;
+      --green-soft: #e2f4eb;
+      --amber: #e0a21a;
+      --amber-soft: #fbf0d5;
+      --red: #d54b4b;
+      --red-soft: #fbe3e3;
+      --blue: #2f5496;
+      --blue-soft: #eaf0f8;
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      margin: 0;
+      background: #e9e1d7;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+      display: flex;
+      justify-content: center;
+    }
+
+    button, input, textarea, select { font-family: inherit; color: inherit; }
+    button { cursor: pointer; border: none; background: none; }
+    img { display: block; max-width: 100%; }
+
+    #app {
+      width: 100%;
+      max-width: 430px;
+      min-height: 100vh;
+      background: var(--bg);
+      box-shadow: 0 0 40px rgba(45, 34, 20, 0.12);
+      position: relative;
+      padding-bottom: 86px;
+    }
+
+    .screen { min-height: 100vh; display: flex; flex-direction: column; }
+    .content { flex: 1; padding: 8px 16px 20px; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(246, 243, 238, 0.94);
+      backdrop-filter: blur(10px);
+      padding: 18px 16px 12px;
+    }
+
+    .topbar h1 { font-size: 24px; margin: 0; letter-spacing: -0.3px; }
+    .topbar .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+    .back-row {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(246, 243, 238, 0.94);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px 10px;
+    }
+
+    .back-row h1 { font-size: 19px; margin: 0; }
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--card);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 4px 14px rgba(52, 42, 30, 0.07);
+      font-size: 18px;
+      flex: 0 0 auto;
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 11px 12px;
+      color: var(--muted);
+      font-size: 14px;
+      margin: 4px 0 14px;
+      box-shadow: 0 6px 18px rgba(52, 42, 30, 0.05);
+    }
+    .search input { flex: 1; border: none; outline: none; background: transparent; font-size: 14px; }
+    .search button { font-size: 17px; color: var(--muted); }
+
+    .seg {
+      display: flex;
+      gap: 6px;
+      background: #efe9e1;
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+    .seg button {
+      flex: 1;
+      padding: 9px;
+      border-radius: 11px;
+      font-size: 13px;
+      color: #7a7066;
+    }
+    .seg button.active { background: #fff; color: var(--accent); font-weight: 600; box-shadow: 0 3px 8px rgba(52,42,30,0.08); }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 8px 22px rgba(52, 42, 30, 0.07);
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .cover {
+      height: 150px;
+      background: linear-gradient(135deg, #e4572e, #f4a261);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 48px;
+      color: rgba(255,255,255,0.92);
+      position: relative;
+      overflow: hidden;
+    }
+    .cover img { width: 100%; height: 100%; object-fit: cover; }
+    .cover .rating {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.48);
+      color: #fff;
+      font-size: 12px;
+    }
+
+    .card-body { padding: 14px; }
+    .card-title { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .card-title h3 { margin: 0; font-size: 16px; }
+    .card-title .meta { font-size: 12px; color: var(--muted); text-align: right; }
+    .card-note { font-size: 13px; color: #6f645a; line-height: 1.55; margin: 9px 0 11px; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 7px; }
+    .tag {
+      font-size: 12px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: #f3eee8;
+      color: #756a60;
+    }
+    .tag.good { background: var(--green-soft); color: var(--green); }
+    .tag.bad { background: var(--red-soft); color: var(--red); }
+    .tag.want { background: var(--amber-soft); color: #a97400; }
+
+    .empty { text-align: center; color: var(--muted); padding: 50px 20px; font-size: 14px; line-height: 1.7; }
+    .empty .big { font-size: 42px; display: block; margin-bottom: 12px; }
+
+    .form-card { background: var(--card); border-radius: var(--radius); padding: 6px 14px; box-shadow: 0 6px 18px rgba(52,42,30,0.05); margin-bottom: 14px; }
+    .field { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+    .field:last-child { border-bottom: none; }
+    .field > span:first-child { flex: 0 0 auto; }
+    .field input, .field textarea, .field select {
+      border: none;
+      outline: none;
+      text-align: right;
+      font-size: 14px;
+      background: transparent;
+      width: 220px;
+      resize: none;
+    }
+    .field textarea { min-height: 58px; line-height: 1.5; text-align: left; }
+
+    .upload {
+      height: 130px;
+      border-radius: 15px;
+      border: 1.5px dashed #d8ccbf;
+      background: #faf6f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .photo-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .photo-item { width: 78px; height: 78px; border-radius: 12px; overflow: hidden; position: relative; background: #f3eee8; display: grid; place-items: center; font-size: 30px; }
+    .photo-item img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-item .del { position: absolute; right: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.45); color: #fff; font-size: 12px; }
+
+    .dish-item { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+    .dish-item:last-child { border-bottom: none; }
+    .dish-thumb { width: 46px; height: 46px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; font-size: 22px; color: #fff; background: #e4572e; flex: 0 0 auto; }
+    .dish-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .dish-main { flex: 1; min-width: 0; }
+    .dish-main input { width: 100%; border: none; outline: none; font-size: 14px; font-weight: 600; background: transparent; }
+    .dish-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+    .mini-tag { font-size: 11px; padding: 3px 7px; border-radius: 999px; background: #f3eee8; color: #7a7066; }
+    .mini-tag.on { background: var(--accent-soft); color: var(--accent); }
+    .dish-note { width: 100%; margin-top: 8px; border: none; outline: none; background: #faf7f2; border-radius: 10px; padding: 8px; font-size: 12px; }
+    .icon-mini { width: 30px; height: 30px; border-radius: 50%; color: #b3a89b; font-size: 17px; flex: 0 0 auto; }
+
+    .primary-btn {
+      display: block;
+      width: 100%;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 15px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 600;
+      text-align: center;
+      box-shadow: 0 10px 20px rgba(228, 87, 46, 0.2);
+    }
+    .secondary-btn {
+      display: block;
+      width: 100%;
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 15px;
+      padding: 13px;
+      font-size: 14px;
+      text-align: center;
+      border: 1px solid var(--line);
+    }
+    .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+    .btn-row button { flex: 1; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin: 14px 0 4px; }
+    .stat { background: #faf7f2; border-radius: 13px; text-align: center; padding: 12px 4px; }
+    .stat b { display: block; font-size: 19px; }
+    .stat span { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    .timeline { display: flex; gap: 12px; padding: 13px; }
+    .timeline .date { text-align: center; color: var(--muted); font-size: 12px; line-height: 1.35; flex: 0 0 42px; }
+    .timeline .date b { display: block; color: var(--ink); font-size: 18px; }
+    .timeline .detail { flex: 1; min-width: 0; }
+    .timeline .detail p { font-size: 13px; color: #6f645a; line-height: 1.5; margin: 6px 0 9px; }
+    .timeline-meta { font-size: 11px; color: #a99d90; margin: 3px 0 0; }
+
+    .list-two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .rank-col { background: var(--card); border-radius: var(--radius); padding: 13px; box-shadow: 0 8px 22px rgba(52,42,30,0.07); }
+    .rank-col h2 { font-size: 15px; margin: 0 0 11px; }
+    .rank-item { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .rank-item:last-child { border-bottom: none; }
+    .rank-item .food { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; font-size: 19px; color: #fff; background: #e4572e; flex: 0 0 auto; }
+    .rank-item .info { flex: 1; min-width: 0; }
+    .rank-item .info b { display: block; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rank-item .info span { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .check-btn { padding: 6px 10px; border-radius: 999px; background: #f1ece5; color: #6f645a; font-size: 12px; flex: 0 0 auto; }
+    .card.checked { opacity: 0.55; }
+    .small-note { font-size: 11px; color: #a99d90; line-height: 1.5; margin: 0 2px 8px; }
+
+    .setting-list { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: 0 8px 22px rgba(52,42,30,0.07); margin-bottom: 14px; }
+    .setting { display: flex; align-items: center; justify-content: space-between; padding: 15px; border-bottom: 1px solid var(--line); font-size: 14px; width: 100%; text-align: left; }
+    .setting:last-child { border-bottom: none; }
+    .setting .left { display: flex; align-items: center; gap: 10px; }
+    .setting .arrow { color: #c0b6ab; }
+    .badge { min-width: 20px; height: 20px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); font-size: 12px; display: grid; place-items: center; padding: 0 6px; }
+
+    .toggle { width: 46px; height: 26px; border-radius: 999px; background: #d8d0c6; position: relative; transition: 0.2s; flex: 0 0 auto; }
+    .toggle::after { content: ""; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.15); transition: 0.2s; }
+    .toggle.on { background: var(--accent); }
+    .toggle.on::after { transform: translateX(20px); }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 430px;
+      height: 76px;
+      background: rgba(255,255,255,0.94);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--line);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-around;
+      padding-top: 10px;
+      z-index: 30;
+    }
+    .nav-item { display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: #9a9188; min-width: 54px; }
+    .nav-item .ico { font-size: 22px; line-height: 1; }
+    .nav-item.active { color: var(--accent); font-weight: 600; }
+    .nav-record { margin-top: -24px; width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(145deg, #f2724a, #e4572e); color: #fff; display: grid; place-items: center; font-size: 27px; box-shadow: 0 10px 20px rgba(228, 87, 46, 0.32); border: 5px solid var(--bg); }
+
+    .modal-root {
+      position: fixed;
+      inset: 0;
+      background: rgba(32, 25, 18, 0.55);
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    .modal-root.active { display: flex; }
+    .modal-card { width: 88%; max-width: 370px; max-height: 88vh; overflow-y: auto; background: #fffdf9; border-radius: 22px; padding: 20px; box-shadow: 0 24px 60px rgba(0,0,0,0.28); }
+    .modal-card h3 { font-size: 18px; margin: 0 0 8px; }
+    .modal-card p { font-size: 13px; color: #6f645a; line-height: 1.6; margin: 0 0 15px; }
+    .modal-card .field { padding: 11px 0; }
+    .modal-card .field input { width: 160px; }
+    .text-btn { display: block; width: 100%; text-align: center; color: #8a8178; font-size: 13px; padding: 8px; }
+
+    .drawer-overlay { justify-content: flex-end; align-items: stretch; padding: 0; }
+    .drawer { width: 78%; height: 100%; background: #fffdf9; box-shadow: -18px 0 50px rgba(0,0,0,0.22); padding: 22px 18px; display: flex; flex-direction: column; }
+    .drawer-head { display: flex; align-items: center; justify-content: space-between; font-size: 18px; margin-bottom: 18px; }
+    .drawer-head button { width: 34px; height: 34px; border-radius: 50%; background: #f3eee8; color: #6f645a; }
+    .drawer-list { display: flex; flex-direction: column; gap: 8px; }
+    .drawer-item { padding: 13px 14px; border-radius: 14px; text-align: left; font-size: 14px; background: #faf7f2; color: #51483f; }
+    .drawer-item.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+
+    .share-card { background: #fffdf9; border-radius: 22px; overflow: hidden; }
+    .share-cover { height: 200px; display: flex; align-items: center; justify-content: center; font-size: 58px; color: #fff; position: relative; overflow: hidden; }
+    .share-cover img { width: 100%; height: 100%; object-fit: cover; }
+    .share-cover .brand { position: absolute; left: 16px; top: 14px; font-size: 13px; font-weight: 700; color: #fff; }
+    .share-cover .rec { position: absolute; right: 14px; top: 14px; background: rgba(0,0,0,0.42); padding: 6px 10px; border-radius: 999px; font-size: 12px; color: #fff; }
+    .share-content { padding: 18px; }
+    .share-content h2 { margin: 0; font-size: 22px; }
+    .share-content .date { color: var(--muted); font-size: 13px; margin-top: 5px; }
+    .share-content .note { font-size: 14px; line-height: 1.65; color: #51483f; margin: 14px 0; }
+    .share-photos { display: flex; align-items: center; gap: 8px; margin: 13px 0 5px; }
+    .share-photos .mini { width: 48px; height: 48px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; font-size: 22px; color: #fff; background: #e4572e; }
+    .share-photos .mini img { width: 100%; height: 100%; object-fit: cover; }
+    .share-photos span { font-size: 11px; color: #9a9188; margin-left: 3px; }
+    .share-dishes { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+    .share-dish { flex: 1; min-width: 70px; text-align: center; }
+    .share-dish .thumb { height: 64px; border-radius: 12px; display: grid; place-items: center; font-size: 27px; color: #fff; background: #e4572e; margin-bottom: 6px; overflow: hidden; }
+    .share-dish .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .share-dish b { display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .share-dish span { font-size: 11px; color: var(--green); }
+    .share-actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+    .share-actions button { flex: 1; min-width: 45%; padding: 11px; border-radius: 13px; font-size: 13px; }
+    .share-actions .save { background: var(--accent); color: #fff; }
+    .share-actions .later { background: #f1ece5; color: #5c5349; }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 110px;
+      transform: translateX(-50%);
+      background: rgba(35, 28, 21, 0.92);
+      color: #fff;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: 999px;
+      z-index: 80;
+      opacity: 0;
+      pointer-events: none;
+      transition: 0.25s;
+      max-width: 86%;
+      text-align: center;
+    }
+    .toast.show { opacity: 1; }
+
+    @media (max-width: 430px) {
+      #app { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="modal-root" id="modal-root"></div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const LS = {
+      meals: 'hw_meals_v1',
+      restaurants: 'hw_restaurants_v1',
+      want: 'hw_want_v1',
+      drafts: 'hw_drafts_v1',
+      settings: 'hw_settings_v1',
+      tags: 'hw_tags_v1',
+      feedback: 'hw_feedback_v1'
+    };
+
+    function load(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function persist() {
+      try {
+        localStorage.setItem(LS.meals, JSON.stringify(state.meals));
+        localStorage.setItem(LS.restaurants, JSON.stringify(state.restaurants));
+        localStorage.setItem(LS.want, JSON.stringify(state.want));
+        localStorage.setItem(LS.drafts, JSON.stringify(state.drafts));
+        localStorage.setItem(LS.settings, JSON.stringify(state.settings));
+        localStorage.setItem(LS.tags, JSON.stringify(state.tags));
+        localStorage.setItem(LS.feedback, JSON.stringify(state.feedback));
+      } catch (e) {
+        toast('保存失败：数据过大，建议删除部分大图或改用 emoji');
+      }
+    }
+
+    const defaultTags = ['好吃', '想再点', '一般', '踩雷'];
+
+    function seed() {
+      state.restaurants = [];
+      state.meals = [];
+      state.want = [];
+      state.drafts = [];
+      state.settings = { defaultPrivate: true, showHomeCards: true };
+      state.tags = [...defaultTags];
+      state.feedback = [];
+      persist();
+    }
+
+    function removeSampleData() {
+      const sampleMealIds = ['m1', 'm2', 'm3'];
+      const sampleRestIds = ['r1', 'r2', 'r3'];
+      const sampleWantIds = ['w1', 'w2'];
+      const userMeals = state.meals.filter(m => !sampleMealIds.includes(m.id));
+      if (userMeals.length === 0) {
+        state.meals = [];
+        state.restaurants = state.restaurants.filter(r => !sampleRestIds.includes(r.id));
+        state.want = state.want.filter(w => !sampleWantIds.includes(w.id));
+      } else {
+        state.meals = state.meals.filter(m => !sampleMealIds.includes(m.id));
+        const used = new Set(state.meals.map(m => m.restaurantId));
+        state.restaurants = state.restaurants.filter(r => !sampleRestIds.includes(r.id) || used.has(r.id));
+        state.want = state.want.filter(w => !sampleWantIds.includes(w.id));
+      }
+    }
+
+    function isoDaysAgo(n) {
+      const d = new Date(Date.now() - n * 86400000);
+      const p = x => String(x).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    }
+
+    let state = {
+      meals: load(LS.meals, []),
+      restaurants: load(LS.restaurants, []),
+      want: load(LS.want, []),
+      drafts: load(LS.drafts, []),
+      settings: load(LS.settings, { defaultPrivate: true, showHomeCards: true }),
+      tags: load(LS.tags, defaultTags),
+      feedback: load(LS.feedback, [])
+    };
+
+    removeSampleData();
+    if (!state.meals.length && !state.restaurants.length) {
+      seed();
+    }
+    if (state.settings.showHomeCards === undefined) {
+      state.settings.showHomeCards = true;
+    }
+    persist();
+
+    let filterCuisine = '';
+    let homeDineType = '全部';
+    let recordDirty = false;
+    let recordDishes = [];
+    let recordPhotos = [];
+    let editMealId = null;
+
+    const $app = document.getElementById('app');
+    const $modal = document.getElementById('modal-root');
+    const $toast = document.getElementById('toast');
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function toast(msg) {
+      $toast.textContent = msg;
+      $toast.classList.add('show');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => $toast.classList.remove('show'), 1800);
+    }
+
+    function go(hash) {
+      location.hash = hash;
+    }
+
+    function today() {
+      const d = new Date();
+      const p = x => String(x).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+    }
+
+    function fmtDate(dateStr) {
+      if (!dateStr) return '';
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      return `${parseInt(parts[1], 10)}月${parseInt(parts[2], 10)}日`;
+    }
+
+    function restaurant(id) {
+      return state.restaurants.find(r => r.id === id) || { name: '未知餐厅', cuisine: '', location: '', cover: '🍽️' };
+    }
+
+    function upsertRestaurant(name, cuisine, location, cover) {
+      name = (name || '').trim();
+      if (!name) return '';
+      let r = state.restaurants.find(x => x.name.toLowerCase() === name.toLowerCase());
+      if (!r) {
+        r = { id: uid(), name, cuisine: cuisine || '', location: location || '', cover: cover || '🍽️' };
+        state.restaurants.push(r);
+      } else {
+        if (cuisine) r.cuisine = cuisine;
+        if (location) r.location = location;
+        if (cover) r.cover = cover;
+      }
+      return r.id;
+    }
+
+    function restaurantStats(rid) {
+      const meals = state.meals.filter(m => m.restaurantId === rid).sort((a, b) => b.date.localeCompare(a.date));
+      let rec = 0, bad = 0, people = 0, amount = 0;
+      const dishes = new Set();
+      meals.forEach(m => {
+        people += Number(m.numPeople) || 0;
+        amount += Number(m.totalAmount) || 0;
+        m.dishes.forEach(d => {
+          dishes.add(d.name.trim());
+          if (d.tags.includes('好吃') || d.tags.includes('想再点')) rec++;
+          if (d.tags.includes('踩雷')) bad++;
+        });
+      });
+      return { meals, visits: meals.length, dishCount: dishes.size, rec, bad, avg: people ? Math.round(amount / people) : 0 };
+    }
+
+    function collectDishes() {
+      const map = new Map();
+      state.meals.forEach(meal => {
+        meal.dishes.forEach(d => {
+          const name = (d.name || '').trim();
+          if (!name) return;
+          if (!map.has(name)) {
+            map.set(name, { name, restaurantIds: new Set(), occurrences: [] });
+          }
+          const agg = map.get(name);
+          agg.restaurantIds.add(meal.restaurantId);
+          agg.occurrences.push({ ...d, mealDate: meal.date, restaurantId: meal.restaurantId, mealNote: meal.note });
+        });
+      });
+      const arr = [...map.values()];
+      arr.forEach(a => a.occurrences.sort((x, y) => y.mealDate.localeCompare(x.mealDate)));
+      return arr.sort((a, b) => b.occurrences[0].mealDate.localeCompare(a.occurrences[0].mealDate));
+    }
+
+    function dishHistory(name) {
+      const d = collectDishes().find(x => x.name === name);
+      return d || { name, restaurantIds: new Set(), occurrences: [] };
+    }
+
+    function filteredMeals() {
+      let meals = [...state.meals].sort((a, b) => b.date.localeCompare(a.date));
+      if (homeDineType !== '全部') {
+        meals = meals.filter(m => m.mealType === homeDineType);
+      }
+      if (filterCuisine) {
+        meals = meals.filter(m => restaurant(m.restaurantId).cuisine === filterCuisine);
+      }
+      return meals;
+    }
+
+    function nav(active) {
+      return `
+        <nav class="bottom-nav">
+          <button class="nav-item ${active === 'home' ? 'active' : ''}" onclick="go('#home')"><span class="ico">🏠</span><span>首页</span></button>
+          <button class="nav-item ${active === 'rank' ? 'active' : ''}" onclick="go('#rank')"><span class="ico">🏆</span><span>榜单</span></button>
+          <button class="nav-item" onclick="go('#record')"><span class="nav-record">＋</span><span>记录</span></button>
+          <button class="nav-item ${active === 'me' ? 'active' : ''}" onclick="go('#me')"><span class="ico">👤</span><span>我的</span></button>
+        </nav>
+      `;
+    }
+
+    function topbar(title, sub) {
+      return `<div class="topbar"><h1>${esc(title)}</h1><div class="sub">${esc(sub)}</div></div>`;
+    }
+
+    function backbar(title) {
+      return `<div class="back-row"><button class="icon-btn" onclick="history.back()">←</button><h1>${esc(title)}</h1></div>`;
+    }
+
+    function coverHtml(meal, restaurant) {
+      const cover = meal.photos && meal.photos.length ? `<img src="${meal.photos[0]}" alt="">` : esc(restaurant.cover || '🍽️');
+      const rating = mealRating(meal);
+      return `<div class="cover">${cover}${rating ? `<span class="rating">${esc(rating)}</span>` : ''}</div>`;
+    }
+
+    function mealRating(meal) {
+      const tags = meal.dishes.flatMap(d => d.tags);
+      if (tags.includes('踩雷')) return '踩雷';
+      if (tags.includes('好吃') || tags.includes('想再点')) return '值得再点';
+      if (tags.includes('一般')) return '一般';
+      return '';
+    }
+
+    function allMealTags(meal) {
+      return [...new Set(meal.dishes.flatMap(d => d.tags))];
+    }
+
+    function groupMealsByRestaurant(meals) {
+      const map = new Map();
+      meals.forEach(m => {
+        if (!map.has(m.restaurantId)) map.set(m.restaurantId, []);
+        map.get(m.restaurantId).push(m);
+      });
+      const groups = [...map.entries()].map(([rid, list]) => {
+        list.sort((a, b) => b.date.localeCompare(a.date));
+        const r = restaurant(rid);
+        const latest = list[0];
+        const visits = list.length;
+        let people = 0, amount = 0;
+        list.forEach(m => {
+          people += Number(m.numPeople) || 0;
+          amount += Number(m.totalAmount) || 0;
+        });
+        const avg = people ? Math.round(amount / people) : 0;
+        const tags = [...new Set(list.flatMap(m => allMealTags(m)))];
+        const dishes = [...new Set(list.flatMap(m => m.dishes.map(d => (d.name || '').trim()).filter(Boolean)))];
+        return { rid, r, latest, visits, avg, tags, dishes };
+      });
+      return groups.sort((a, b) => b.latest.date.localeCompare(a.latest.date));
+    }
+
+    function tutorialCard() {
+      const step = (n, text) => `
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <span style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:12px;flex:0 0 auto">${n}</span>
+          <span style="font-size:13px;line-height:1.55;color:#51483f">${text}</span>
+        </div>`;
+      return `
+        <div class="card card-body">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:13px">
+            <div style="width:42px;height:42px;border-radius:12px;background:var(--accent-soft);display:grid;place-items:center;font-size:21px">👋</div>
+            <div><b style="font-size:16px">欢迎使用回味</b><div style="font-size:12px;color:var(--muted)">跟着下面的步骤记录第一餐</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:11px">
+            ${step(1, '点底部“记录”，拍照并选择堂食 / 外卖')}
+            ${step(2, '填写餐厅名称、菜系、地址、日期、人数和金额')}
+            ${step(3, '添加菜品，给每道菜选择“好吃 / 想再点 / 一般 / 踩雷”，并补充感受')}
+            ${step(4, '选择是否私密，然后生成图片卡或保存到草稿箱')}
+          </div>
+          <button class="primary-btn" style="margin-top:16px" onclick="go('#record')">记录第一餐</button>
+        </div>`;
+    }
+
+    function renderHome() {
+      const meals = filteredMeals();
+      const groups = groupMealsByRestaurant(meals);
+      const showCards = state.settings.showHomeCards !== false;
+      const hasAnyData = state.meals.length > 0;
+      const hasFilteredData = meals.length > 0;
+      const tagClass = t => (t === '好吃' || t === '想再点' ? 'good' : t === '踩雷' ? 'bad' : t === '一般' ? '' : 'want');
+
+      let body = '';
+      if (!hasAnyData) {
+        body = tutorialCard();
+      } else {
+        body = `
+          <div class="search">
+            <span>🔍</span>
+            <input id="home-search" placeholder="搜索餐厅、菜品或关键词" />
+            <button onclick="openFilter()">☰</button>
+          </div>
+          <div class="seg">
+            ${['全部', '堂食', '外卖'].map(t => `<button class="${homeDineType === t ? 'active' : ''}" onclick="setHomeDineType('${t}')">${t}</button>`).join('')}
+          </div>
+          <div style="font-size:14px;margin:4px 2px 12px"><b>我的餐厅</b> <span style="color:#a99d90;font-size:12px">共 ${groups.length} 家</span></div>
+        `;
+        if (!hasFilteredData) {
+          body += `<div class="empty"><span class="big">🔍</span>没有符合条件的餐厅<br>换个筛选条件试试</div>`;
+        } else if (showCards) {
+          body += groups.map(g => `
+            <div class="card restaurant-card" onclick="go('#restaurant/${g.rid}')">
+              ${coverHtml(g.latest, g.r)}
+              <div class="card-body">
+                <div class="card-title">
+                  <h3>${esc(g.r.name)}</h3>
+                  <div class="meta">${fmtDate(g.latest.date)}<br>去过 ${g.visits} 次 · 人均 ¥${g.avg}</div>
+                </div>
+                ${g.latest.note ? `<div class="card-note">${esc(g.latest.note)}</div>` : ''}
+                ${g.tags.length ? `<div class="tags">${g.tags.map(t => `<span class="tag ${tagClass(t)}">${esc(t)}</span>`).join('')}</div>` : ''}
+                ${g.dishes.length ? `<div class="tags" style="margin-top:6px">${g.dishes.map(d => `<span class="tag">${esc(d)}</span>`).join('')}</div>` : ''}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          body += `<div class="empty" style="padding:38px 20px"><span class="big">🃏</span>首页用餐卡片已隐藏<br>可在“我的”里重新开启</div>`;
+        }
+      }
+
+      $app.innerHTML = `
+        <div class="screen">
+          ${topbar('回味', '每一餐饭都值得回味')}
+          <div class="content">${body}</div>
+          ${nav('home')}
+        </div>
+      `;
+
+      const search = document.getElementById('home-search');
+      if (search) {
+        search.addEventListener('input', e => {
+          const q = e.target.value.trim().toLowerCase();
+          applyHomeSearch(q);
+        });
+      }
+    }
+
+    function applyHomeSearch(q) {
+      const cards = [...document.querySelectorAll('.restaurant-card')];
+      cards.forEach(card => {
+        card.style.display = !q || card.textContent.toLowerCase().includes(q) ? '' : 'none';
+      });
+    }
+
+    function setHomeDineType(t) {
+      homeDineType = t;
+      renderHome();
+    }
+
+    function openFilter() {
+      const cuisines = [...new Set(state.restaurants.map(r => r.cuisine).filter(Boolean))];
+      $modal.className = 'modal-root active drawer-overlay';
+      $modal.innerHTML = `
+        <div class="drawer">
+          <div class="drawer-head"><b>筛选菜系</b><button onclick="closeModal()">✕</button></div>
+          <div class="drawer-list">
+            <button class="drawer-item ${filterCuisine === '' ? 'active' : ''}" onclick="setFilter('')">全部</button>
+            ${cuisines.map(c => `<button class="drawer-item ${filterCuisine === c ? 'active' : ''}" onclick="setFilter('${esc(c)}')">${esc(c)}</button>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function setFilter(c) {
+      filterCuisine = c;
+      closeModal();
+      renderHome();
+    }
+
+    function closeModal() {
+      $modal.classList.remove('active');
+      $modal.className = 'modal-root';
+      $modal.innerHTML = '';
+    }
+
+    function openModal(html) {
+      $modal.className = 'modal-root active';
+      $modal.innerHTML = `<div class="modal-card">${html}</div>`;
+    }
+
+    function renderRecord(id) {
+      editMealId = id || null;
+      let meal = editMealId ? state.meals.find(m => m.id === editMealId) : null;
+      if (!meal && editMealId) {
+        meal = state.drafts.find(d => d.id === editMealId);
+      }
+      recordDishes = meal ? meal.dishes.map(d => ({ ...d, tags: [...d.tags] })) : [];
+      recordPhotos = meal && meal.photos ? [...meal.photos] : [];
+      recordDirty = false;
+      $app.innerHTML = `
+        <div class="screen">
+          ${topbar(meal ? '编辑这顿饭' : '记录这顿饭', '拍张照，留下你的评价')}
+          <div class="content">
+            <div class="upload" onclick="document.getElementById('record-file').click()">
+              <span style="font-size:30px">📷</span>
+              <span>${recordPhotos.length ? `已选择 ${recordPhotos.length} 张照片` : '点击添加用餐照片（可多选）'}</span>
+            </div>
+            <input type="file" id="record-file" accept="image/*" multiple style="display:none" />
+            <div class="photo-grid" id="photo-grid">${recordPhotos.map((p, i) => `<div class="photo-item"><img src="${p}" alt=""><button class="del" onclick="removePhoto(${i})">✕</button></div>`).join('')}</div>
+            <div class="form-card">
+              <div class="field"><span>用餐方式</span><div class="seg" style="margin:0;width:160px"><button id="dine-in" class="${!meal || meal.mealType === '堂食' ? 'active' : ''}" onclick="setMealType('堂食')">堂食</button><button id="dine-out" class="${meal && meal.mealType === '外卖' ? 'active' : ''}" onclick="setMealType('外卖')">外卖</button></div></div>
+              <div class="field"><span>餐厅名称</span><input id="f-name" list="restaurant-list" placeholder="输入或搜索餐厅" value="${esc(meal ? restaurant(meal.restaurantId).name : '')}" oninput="recordDirty=true"></div>
+              <datalist id="restaurant-list">${state.restaurants.map(r => `<option value="${esc(r.name)}">`).join('')}</datalist>
+              <div class="field"><span>菜系</span><input id="f-cuisine" placeholder="例如 川菜" value="${esc(meal ? restaurant(meal.restaurantId).cuisine : '')}" oninput="recordDirty=true"></div>
+              <div class="field"><span>餐厅地址</span><input id="f-address" placeholder="可选" value="${esc(meal ? (meal.address || restaurant(meal.restaurantId).location) : '')}" oninput="recordDirty=true"></div>
+              <div class="field"><span>用餐日期</span><input id="f-date" type="date" value="${meal ? meal.date : today()}" oninput="recordDirty=true"></div>
+              <div class="field"><span>用餐人数</span><input id="f-people" type="number" min="1" placeholder="例如 2" value="${meal ? meal.numPeople : ''}" oninput="recordDirty=true"></div>
+              <div class="field"><span>消费金额</span><input id="f-amount" type="number" min="0" placeholder="例如 116" value="${meal ? meal.totalAmount : ''}" oninput="recordDirty=true"></div>
+              <div class="field"><span>整体感受</span><textarea id="f-note" placeholder="这顿饭给你的印象..." oninput="recordDirty=true">${esc(meal ? meal.note : '')}</textarea></div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:18px 2px 10px"><b>菜品明细</b><span style="font-size:12px;color:#a99d90">可稍后补充</span></div>
+            <div class="form-card" id="dish-list"></div>
+            <button class="secondary-btn" onclick="addDish()">＋ 添加一道菜</button>
+            <div class="form-card" style="margin-top:14px">
+              <div class="field"><span>🔒 仅自己可见</span><div class="toggle ${(meal ? meal.privacy : state.settings.defaultPrivate) ? 'on' : ''}" id="privacy-toggle" onclick="togglePrivacy()"></div></div>
+            </div>
+            <button class="primary-btn" onclick="saveMeal(false)">生成用餐图片卡</button>
+            <button class="secondary-btn" style="margin-top:9px" onclick="saveMeal(true)">保存到草稿箱</button>
+          </div>
+          ${nav('record')}
+        </div>
+      `;
+      renderDishList();
+      const file = document.getElementById('record-file');
+      file.addEventListener('change', e => handleFiles(e.target.files));
+    }
+
+    function setMealType(t) {
+      document.getElementById('dine-in').classList.toggle('active', t === '堂食');
+      document.getElementById('dine-out').classList.toggle('active', t === '外卖');
+      recordDirty = true;
+    }
+
+    function handleFiles(files) {
+      [...files].forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          recordPhotos.push(e.target.result);
+          renderPhotoGrid();
+          recordDirty = true;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderPhotoGrid() {
+      const grid = document.getElementById('photo-grid');
+      if (!grid) return;
+      grid.innerHTML = recordPhotos.map((p, i) => `<div class="photo-item"><img src="${p}" alt=""><button class="del" onclick="removePhoto(${i})">✕</button></div>`).join('');
+    }
+
+    function removePhoto(i) {
+      recordPhotos.splice(i, 1);
+      renderPhotoGrid();
+      recordDirty = true;
+    }
+
+    function addDish() {
+      recordDishes.push({ id: uid(), name: '', photoEmoji: '🍲', tags: [], note: '' });
+      renderDishList();
+      recordDirty = true;
+    }
+
+    function renderDishList() {
+      const list = document.getElementById('dish-list');
+      if (!list) return;
+      if (!recordDishes.length) {
+        list.innerHTML = '<div style="padding:16px;text-align:center;color:#a99d90;font-size:13px">还没有菜品，点击下方添加</div>';
+        return;
+      }
+      list.innerHTML = recordDishes.map((dish, i) => `
+        <div class="dish-item">
+          <div class="dish-thumb" style="background:linear-gradient(135deg,#e4572e,#f4a261)" onclick="pickDishEmoji(${i})">${dish.photoData ? `<img src="${dish.photoData}" alt="">` : esc(dish.photoEmoji)}</div>
+          <div class="dish-main">
+            <input value="${esc(dish.name)}" placeholder="输入菜名" oninput="updateDishName(${i}, this.value)" />
+            <div class="dish-tags">
+              ${state.tags.map(t => `<button class="mini-tag ${dish.tags.includes(t) ? 'on' : ''}" onclick="toggleDishTag(${i}, '${esc(t)}')">${esc(t)}</button>`).join('')}
+            </div>
+            ${dish.showNote ? `<textarea class="dish-note" placeholder="补充对这道菜的感受" oninput="updateDishNote(${i}, this.value)">${esc(dish.note)}</textarea>` : ''}
+          </div>
+          <button class="icon-mini" onclick="toggleDishNote(${i})">⋯</button>
+          <button class="icon-mini" onclick="removeDish(${i})">✕</button>
+        </div>
+      `).join('');
+    }
+
+    function updateDishName(i, val) {
+      recordDishes[i].name = val;
+      recordDirty = true;
+    }
+
+    function updateDishNote(i, val) {
+      recordDishes[i].note = val;
+      recordDirty = true;
+    }
+
+    function toggleDishTag(i, tag) {
+      const tags = recordDishes[i].tags;
+      const idx = tags.indexOf(tag);
+      if (idx >= 0) tags.splice(idx, 1);
+      else tags.push(tag);
+      renderDishList();
+      recordDirty = true;
+    }
+
+    function toggleDishNote(i) {
+      recordDishes[i].showNote = !recordDishes[i].showNote;
+      renderDishList();
+      recordDirty = true;
+    }
+
+    function removeDish(i) {
+      recordDishes.splice(i, 1);
+      renderDishList();
+      recordDirty = true;
+    }
+
+    function pickDishEmoji(i) {
+      const emoji = prompt('输入一个 emoji 作为这道菜的图标，例如 🍜', recordDishes[i].photoEmoji);
+      if (emoji) {
+        recordDishes[i].photoEmoji = emoji.trim();
+        recordDishes[i].photoData = '';
+        renderDishList();
+        recordDirty = true;
+      }
+    }
+
+    function togglePrivacy() {
+      document.getElementById('privacy-toggle').classList.toggle('on');
+      recordDirty = true;
+    }
+
+    function readRecordForm() {
+      const val = id => (document.getElementById(id) ? document.getElementById(id).value.trim() : '');
+      const privacy = document.getElementById('privacy-toggle').classList.contains('on');
+      return {
+        restaurantName: val('f-name'),
+        cuisine: val('f-cuisine'),
+        address: val('f-address'),
+        date: val('f-date') || today(),
+        mealType: document.getElementById('dine-in').classList.contains('active') ? '堂食' : '外卖',
+        numPeople: val('f-people'),
+        totalAmount: val('f-amount'),
+        note: val('f-note'),
+        privacy,
+        dishes: recordDishes.filter(d => d.name.trim()),
+        photos: [...recordPhotos]
+      };
+    }
+
+    function buildMeal(data) {
+      const cover = data.photos[0] || (data.dishes[0] ? data.dishes[0].photoEmoji : '🍽️');
+      const restaurantId = upsertRestaurant(data.restaurantName, data.cuisine, data.address, cover);
+      return {
+        id: editMealId || uid(),
+        restaurantId,
+        date: data.date,
+        mealType: data.mealType,
+        numPeople: data.numPeople,
+        totalAmount: data.totalAmount,
+        address: data.address,
+        note: data.note,
+        privacy: data.privacy,
+        photos: data.photos,
+        dishes: data.dishes
+      };
+    }
+
+    function saveMeal(asDraft) {
+      const data = readRecordForm();
+      if (!data.restaurantName) {
+        toast('请先填写餐厅名称');
+        return;
+      }
+      if (asDraft) {
+        const draft = { ...buildMeal(data), savedAt: new Date().toISOString() };
+        const idx = state.drafts.findIndex(d => d.id === editMealId);
+        if (idx >= 0) state.drafts[idx] = draft;
+        else state.drafts.unshift(draft);
+        persist();
+        toast('已保存到草稿箱');
+        go('#me');
+        return;
+      }
+      const meal = buildMeal(data);
+      const idx = state.meals.findIndex(m => m.id === meal.id);
+      if (idx >= 0) state.meals[idx] = meal;
+      else state.meals.unshift(meal);
+      state.drafts = state.drafts.filter(d => d.id !== meal.id);
+      persist();
+      recordDirty = false;
+      showShare(meal);
+    }
+
+    function confirmLeaveRecord() {
+      if (!recordDirty) {
+        go('#home');
+        return;
+      }
+      openModal(`
+        <h3>是否离开记录页？</h3>
+        <p>当前记录还未保存，你可以先保存到草稿箱。</p>
+        <button class="primary-btn" onclick="quickDraftAndLeave()">保存草稿并离开</button>
+        <button class="secondary-btn" style="margin-top:8px" onclick="go('#home')">放弃本次修改</button>
+        <button class="text-btn" onclick="closeModal()">继续编辑</button>
+      `);
+    }
+
+    function quickDraftAndLeave() {
+      saveMeal(true);
+      closeModal();
+    }
+
+    function renderRestaurant(rid) {
+      const r = restaurant(rid);
+      const stats = restaurantStats(rid);
+      const meals = stats.meals;
+      const want = state.want.filter(w => w.restaurantId === rid && !w.checked);
+      $app.innerHTML = `
+        <div class="screen">
+          ${backbar('餐厅档案')}
+          <div class="content">
+            <div class="card">
+              <div class="cover">${esc(r.cover || '🍽️')}</div>
+              <div class="card-body">
+                <h2 style="margin:0 0 5px;font-size:21px">${esc(r.name)}</h2>
+                <div style="color:var(--muted);font-size:13px">${esc(r.cuisine || '未分类')} · ${esc(r.location || '未填写门店')} · 人均 ¥${stats.avg}</div>
+                <div class="stats">
+                  <div class="stat"><b>${stats.visits}</b><span>去过次数</span></div>
+                  <div class="stat"><b>${stats.rec}</b><span>推荐菜</span></div>
+                  <div class="stat"><b>${stats.bad}</b><span>踩雷菜</span></div>
+                </div>
+              </div>
+            </div>
+            ${want.length ? `<div class="card card-body"><b>想试清单</b>${want.map(w => `<div class="tags" style="margin-top:8px"><span class="tag want">${esc(w.name)} · ¥${w.price || '--'}</span></div>`).join('')}</div>` : ''}
+            <div style="font-size:15px;font-weight:600;margin:18px 2px 10px">用餐历史</div>
+            ${meals.length ? meals.map(meal => {
+              return `
+                <div class="card">
+                  <div class="timeline">
+                    <div class="date"><b>${fmtDate(meal.date).split('月')[1] || ''}</b>${fmtDate(meal.date).split('月')[0]}月</div>
+                    <div class="detail">
+                      <div class="tags">${allMealTags(meal).map(t => `<span class="tag ${t === '好吃' || t === '想再点' ? 'good' : t === '踩雷' ? 'bad' : ''}">${esc(t)}</span>`).join('')}</div>
+                      <div class="timeline-meta">${esc(meal.mealType)} · ${meal.numPeople || 0} 人 · ¥${meal.totalAmount || 0}</div>
+                      <p>${esc(meal.note || '')}</p>
+                      <div class="tags">${meal.dishes.map(d => `<button class="tag" onclick="go('#dish/${encodeURIComponent(d.name)}')">${esc(d.name)}</button>`).join('')}</div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('') : '<div class="empty">还没有用餐记录</div>'}
+            <button class="primary-btn" onclick="openWantForm('${rid}')">＋ 添加想试的菜</button>
+            <button class="secondary-btn" style="margin-top:9px" onclick="startRecordForRestaurant('${rid}')">再记一餐</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function openWantForm(rid) {
+      const r = restaurant(rid);
+      openModal(`
+        <h3>添加想试的菜</h3>
+        <p>${esc(r.name)}</p>
+        <div class="field"><span>菜品名称</span><input id="want-name" placeholder="例如 水煮鱼"></div>
+        <div class="field"><span>参考价格</span><input id="want-price" type="number" placeholder="例如 68"></div>
+        <button class="primary-btn" onclick="saveWant('${rid}')">保存到想试清单</button>
+        <button class="text-btn" onclick="closeModal()">取消</button>
+      `);
+    }
+
+    function saveWant(rid) {
+      const name = document.getElementById('want-name').value.trim();
+      const price = document.getElementById('want-price').value.trim();
+      if (!name) {
+        toast('请填写菜品名称');
+        return;
+      }
+      state.want.unshift({ id: uid(), restaurantId: rid, name, price, checked: false, createdAt: new Date().toISOString() });
+      persist();
+      closeModal();
+      toast('已加入想试清单');
+      renderRestaurant(rid);
+    }
+
+    function startRecordForRestaurant(rid) {
+      const r = restaurant(rid);
+      editMealId = null;
+      recordDirty = false;
+      go('#record');
+      setTimeout(() => {
+        const nameEl = document.getElementById('f-name');
+        if (nameEl) {
+          nameEl.value = r.name;
+          const cuisineEl = document.getElementById('f-cuisine');
+          if (cuisineEl) cuisineEl.value = r.cuisine;
+          const addrEl = document.getElementById('f-address');
+          if (addrEl) addrEl.value = r.location;
+          recordDirty = true;
+        }
+      }, 0);
+    }
+
+    function renderDish(name) {
+      const d = dishHistory(name);
+      const rnames = [...d.restaurantIds].map(id => restaurant(id).name);
+      const good = d.occurrences.filter(o => o.tags.includes('好吃') || o.tags.includes('想再点')).length;
+      const bad = d.occurrences.filter(o => o.tags.includes('踩雷')).length;
+      $app.innerHTML = `
+        <div class="screen">
+          ${backbar('菜品历史')}
+          <div class="content">
+            <div class="card">
+              <div class="cover">${esc(d.occurrences[0] ? d.occurrences[0].photoEmoji : '🍽️')}</div>
+              <div class="card-body">
+                <h2 style="margin:0 0 5px;font-size:21px">${esc(name)}</h2>
+                <div style="color:var(--muted);font-size:13px">${rnames.map(esc).join(' / ')} · 共点过 ${d.occurrences.length} 次</div>
+                <div class="stats">
+                  <div class="stat"><b>${d.occurrences.length}</b><span>点过次数</span></div>
+                  <div class="stat"><b>${good}</b><span>好吃</span></div>
+                  <div class="stat"><b>${bad}</b><span>踩雷</span></div>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:15px;font-weight:600;margin:18px 2px 10px">不同时间的体验</div>
+            ${d.occurrences.map(o => `
+              <div class="card timeline">
+                <div class="date"><b>${fmtDate(o.mealDate).split('月')[1] || ''}</b>${fmtDate(o.mealDate).split('月')[0]}月</div>
+                <div class="detail">
+                  <div class="tags">${o.tags.map(t => `<span class="tag ${t === '好吃' || t === '想再点' ? 'good' : t === '踩雷' ? 'bad' : ''}">${esc(t)}</span>`).join('')}</div>
+                  <p>${esc(o.note || o.mealNote || '')}</p>
+                  <button class="tag" onclick="go('#restaurant/${o.restaurantId}')">${esc(restaurant(o.restaurantId).name)}</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderRank() {
+      const dishes = collectDishes();
+      const rec = dishes.filter(d => {
+        const latest = d.occurrences[0];
+        return latest.tags.includes('好吃') || latest.tags.includes('想再点');
+      });
+      const bad = dishes.filter(d => {
+        const latest = d.occurrences[0];
+        return latest.tags.includes('踩雷');
+      });
+      const want = state.want.filter(w => !w.checked);
+      $app.innerHTML = `
+        <div class="screen">
+          ${topbar('我的红黑榜', '点菜前先看一眼')}
+          <div class="content">
+            <div class="search"><span>🔍</span><input id="rank-search" placeholder="搜索菜品或餐厅"></div>
+            <div class="list-two">
+              <div class="rank-col">
+                <h2>✅ 值得再点</h2>
+                ${rec.map(d => rankItem(d)).join('') || '<div style="color:#a99d90;font-size:12px">暂无</div>'}
+              </div>
+              <div class="rank-col">
+                <h2>⚠️ 不再点</h2>
+                ${bad.map(d => rankItem(d)).join('') || '<div style="color:#a99d90;font-size:12px">暂无</div>'}
+              </div>
+            </div>
+            <div style="font-size:15px;font-weight:600;margin:20px 2px 10px">下次想试 <span style="color:#a99d90;font-size:12px">${want.length} 道</span></div>
+            ${want.map(w => `
+              <div class="card" id="want-${w.id}">
+                <div class="card-body">
+                  <div class="card-title">
+                    <h3>${esc(restaurant(w.restaurantId).name)}</h3>
+                    <button class="check-btn" onclick="toggleChecked('${w.id}')">✔ 打卡</button>
+                  </div>
+                  <div class="tags" style="margin-top:7px"><span class="tag want">${esc(w.name)} · ¥${w.price || '--'}</span></div>
+                </div>
+              </div>
+            `).join('') || '<div class="empty">暂时没有想试的菜</div>'}
+            <p class="small-note">已打卡的菜品会变淡并收起，详情可在“我的”里查看。</p>
+          </div>
+          ${nav('rank')}
+        </div>
+      `;
+      document.getElementById('rank-search').addEventListener('input', e => {
+        const q = e.target.value.trim().toLowerCase();
+        document.querySelectorAll('.rank-item, .card[id^="want-"]').forEach(el => {
+          el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
+        });
+      });
+    }
+
+    function rankItem(d) {
+      const r = restaurant(d.occurrences[0].restaurantId);
+      return `<div class="rank-item" onclick="go('#dish/${encodeURIComponent(d.name)}')"><div class="food">${esc(d.occurrences[0].photoEmoji)}</div><div class="info"><b>${esc(d.name)}</b><span>${esc(r.name)}</span></div></div>`;
+    }
+
+    function toggleChecked(id) {
+      const w = state.want.find(x => x.id === id);
+      if (!w) return;
+      w.checked = !w.checked;
+      w.checkedAt = w.checked ? new Date().toISOString() : null;
+      persist();
+      renderRank();
+    }
+
+    function renderMe() {
+      const meals = state.meals;
+      const totalSpend = meals.reduce((s, m) => s + (Number(m.totalAmount) || 0), 0);
+      $app.innerHTML = `
+        <div class="screen">
+          ${topbar('我的', '个人设置与数据')}
+          <div class="content">
+            <div class="card card-body" style="display:flex;align-items:center;gap:14px">
+              <div style="width:54px;height:54px;border-radius:18px;background:linear-gradient(145deg,#f4a261,#e4572e);display:grid;place-items:center;font-size:25px;color:#fff">🍽️</div>
+              <div><h2 style="margin:0;font-size:18px">小食光</h2><p style="margin:4px 0 0;font-size:13px;color:var(--muted)">已记录 ${meals.length} 顿饭 · ${state.restaurants.length} 家餐厅 · 累计 ¥${totalSpend}</p></div>
+            </div>
+            <div class="setting-list">
+              <button class="setting" onclick="toggleDefaultPrivacy()"><span class="left">🔒 默认私密记录</span><div class="toggle ${state.settings.defaultPrivate ? 'on' : ''}"></div></button>
+              <button class="setting" onclick="toggleHomeCards()"><span class="left">🃏 首页展示用餐卡片</span><div class="toggle ${state.settings.showHomeCards !== false ? 'on' : ''}"></div></button>
+              <button class="setting" onclick="go('#drafts')"><span class="left">📥 草稿箱</span><span class="badge">${state.drafts.length}</span></button>
+              <button class="setting" onclick="go('#checked')"><span class="left">✅ 已打卡记录</span><span class="arrow">›</span></button>
+              <button class="setting" onclick="go('#feedback')"><span class="left">📮 我的反馈</span><span class="badge">${state.feedback.length}</span></button>
+              <button class="setting" onclick="go('#stats')"><span class="left">📊 用餐统计</span><span class="arrow">›</span></button>
+              <button class="setting" onclick="go('#tags')"><span class="left">🏷️ 标签管理</span><span class="arrow">›</span></button>
+              <button class="setting" onclick="exportData()"><span class="left">📤 导出我的记录</span><span class="arrow">›</span></button>
+              <button class="setting" onclick="document.getElementById('import-file').click()"><span class="left">📥 导入备份</span><span class="arrow">›</span></button>
+              <input type="file" id="import-file" accept="application/json" style="display:none">
+            </div>
+            <button class="secondary-btn" onclick="openFeedbackForm()">给我反馈</button>
+          </div>
+          ${nav('me')}
+        </div>
+      `;
+      document.getElementById('import-file').addEventListener('change', e => importData(e.target.files[0]));
+    }
+
+    function toggleDefaultPrivacy() {
+      state.settings.defaultPrivate = !state.settings.defaultPrivate;
+      persist();
+      renderMe();
+    }
+
+    function toggleHomeCards() {
+      state.settings.showHomeCards = state.settings.showHomeCards === false;
+      persist();
+      renderMe();
+    }
+
+    function openFeedbackForm() {
+      openModal(`
+        <h3>给我反馈</h3>
+        <p>你的反馈会保存在本机，并可随“导出我的记录”一起打包。</p>
+        <div class="field"><span>反馈类型</span><select id="fb-type" style="width:160px;text-align:right"><option>建议</option><option>问题</option><option>其他</option></select></div>
+        <div class="field"><span>反馈内容</span><textarea id="fb-content" placeholder="写下你的建议或遇到的问题" style="flex:1;width:100%;min-height:84px;text-align:left"></textarea></div>
+        <div class="field"><span>联系方式</span><input id="fb-contact" placeholder="选填"></div>
+        <button class="primary-btn" onclick="submitFeedback()">提交反馈</button>
+        <button class="text-btn" onclick="closeModal()">取消</button>
+      `);
+    }
+
+    function submitFeedback() {
+      const type = document.getElementById('fb-type').value.trim() || '其他';
+      const content = document.getElementById('fb-content').value.trim();
+      const contact = document.getElementById('fb-contact').value.trim();
+      if (!content) {
+        toast('请填写反馈内容');
+        return;
+      }
+      state.feedback.unshift({ id: uid(), type, content, contact, createdAt: new Date().toISOString() });
+      persist();
+      closeModal();
+      toast('反馈已保存');
+    }
+
+    function renderFeedback() {
+      const list = state.feedback;
+      $app.innerHTML = `
+        <div class="screen">
+          ${backbar('我的反馈')}
+          <div class="content">
+            <div class="card card-body">
+              <b>关于反馈方式</b>
+              <p style="font-size:13px;color:#6f645a;line-height:1.7;margin:9px 0 0">为了保持轻量、隐私和离线可用，当前版本采用本地反馈记录：反馈保存在本机，并随数据一起导出。产品设计阶段也评估过在线表单、自建后台等方式，并预留了统一的数据结构，未来可在不改变表单的情况下接入云端，把反馈自动送达开发者。</p>
+            </div>
+            <button class="primary-btn" onclick="openFeedbackForm()">＋ 写反馈</button>
+            <div style="font-size:15px;font-weight:600;margin:20px 2px 10px">我的反馈</div>
+            ${list.length ? list.map(f => `
+              <div class="card card-body">
+                <div class="card-title"><h3>${esc(f.type)}</h3><div class="meta">${esc((f.createdAt || '').slice(0, 10))}</div></div>
+                <p class="card-note">${esc(f.content)}</p>
+                ${f.contact ? `<div style="font-size:12px;color:#a99d90;margin-bottom:8px">联系方式：${esc(f.contact)}</div>` : ''}
+                <div class="btn-row">
+                  <button class="secondary-btn" onclick="copyFeedback('${f.id}')">复制内容</button>
+                  <button class="secondary-btn" onclick="deleteFeedback('${f.id}')">删除</button>
+                </div>
+              </div>
+            `).join('') : '<div class="empty"><span class="big">📮</span>还没有反馈记录</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function copyFeedback(id) {
+      const f = state.feedback.find(x => x.id === id);
+      if (!f) return;
+      const text = `[回味反馈] ${f.type} ${(f.createdAt || '').slice(0, 10)}\n${f.content}${f.contact ? '\n联系方式：' + f.contact : ''}`;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => toast('已复制')).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function deleteFeedback(id) {
+      if (!confirm('删除这条反馈？')) return;
+      state.feedback = state.feedback.filter(f => f.id !== id);
+      persist();
+      renderFeedback();
+    }
+
+    function renderDrafts() {
+      $app.innerHTML = `
+        <div class="screen">
+          ${backbar('草稿箱')}
+          <div class="content">
+            ${state.drafts.length ? state.drafts.map(d => {
+              const r = restaurant(d.restaurantId);
+              return `
+                <div class="card card-body">
+                  <div class="card-title">
+                    <h3>${esc(r.name)}</h3>
+                    <div class="meta">${fmtDate(d.date)} · ${esc(d.mealType)}</div>
+                  </div>
+                  <p class="card-note">${esc(d.note || '暂无描述')}</p>
+                  <div class="btn-row">
+                    <button class="primary-btn" onclick="editDraft('${d.id}')">继续编辑</button>
+                    <button class="secondary-btn" onclick="deleteDraft('${d.id}')">删除</button>
+                  </div>
+                </div>
+              `;
+            }).join('') : '<div class="empty"><span class="big">📥</span>暂无草稿</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function editDraft(id) {
+      const d = state.drafts.find(x => x.id === id);
+      if (!d) return;
+      go('#record/' + id);
+    }
+
+    function deleteDraft(id) {
+      state.drafts = state.drafts.filter(d => d.id !== id);
+      persist();
+      renderDrafts();
+    }
+
+    function renderChecked() {
+      const checked = state.want.filter(w => w.checked);
+      $app.innerHTML = `
+        <div class="screen">
+          ${backbar('已打卡记录')}
+          <div class="content">
+            ${checked.length ? checked.map(w => `
+              <div class="card card-body">
+                <div class="card-title"><h3>${esc(w.name)}</h3><span class="tag want">已打卡</span></div>
+                <div style="color:var(--muted);font-size:12px;margin-top:6px">${esc(restaurant(w.restaurantId).name)} · ${w.checkedAt ? fmtDate(w.checkedAt.slice(0,10)) : ''}</div>
+                <div class="btn-row"><button class="secondary-btn" onclick="uncheck('${w.id}')">取消打卡</button><button class="primary-btn" onclick="toast('添加本次体验功能待完善')">添加体验</button></div>
+              </div>
+            `).join('') : '<div class="empty"><span class="big">✅</span>暂无已打卡菜品</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function uncheck(id) {
+      const w = state.want.find(x => x.id === id);
+      if (w) w.checked = false;
+      persist();
+      renderChecked();
+    }
+
+    function renderStats() {
+      const meals = state.meals;
+      const total = meals.reduce((s, m) => s + (Number(m.totalAmount) || 0), 0);
+      const visits = {};
+      meals.forEach(m => { visits[m.restaurantId] = (visits[m.restaurantId] || 0) + 1; });
+      const top = Object.entries(visits).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const dishes = collectDishes().sort((a, b) => b.occurrences.length - a.occurrences.length).slice(0, 5);
+      $app.innerHTML = `
+        <div class="screen">
+          ${backbar('用餐统计')}
+          <div class="content">
+            <div class="card card-body">
+              <div class="stats">
+                <div class="stat"><b>${meals.length}</b><span>用餐次数</span></div>
+                <div class="stat"><b>${state.restaurants.length}</b><span>记录餐厅</span></div>
+                <div class="stat"><b>¥${total}</b><span>累计消费</span></div>
+              </div>
+            </div>
+            <div style="font-size:15px;font-weight:600;margin:18px 2px 10px">最常去的餐厅</div>
+            ${top.length ? top.map(([rid, count]) => `<div class="card card-body"><div class="card-title"><h3>${esc(restaurant(rid).name)}</h3><span class="tag">${count} 次</span></div></div>`).join('') : '<div class="empty">暂无数据</div>'}
+            <div style="font-size:15px;font-weight:600;margin:18px 2px 10px">点得最多的菜</div>
+            ${dishes.length ? dishes.map(d => `<div class="card card-body" onclick="go('#dish/${encodeURIComponent(d.name)}')"><div class="card-title"><h3>${esc(d.name)}</h3><span class="tag">${d.occurrences.length} 次</span></div></div>`).join('') : '<div class="empty">暂无数据</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTags() {
+      $app.innerHTML = `
+        <div class="screen">
+          ${backbar('标签管理')}
+          <div class="content">
+            <div class="form-card">
+              <div class="field"><span>新增标签</span><input id="new-tag" placeholder="输入标签名"></div>
+            </div>
+            <button class="primary-btn" onclick="addTag()">添加标签</button>
+            <div style="font-size:15px;font-weight:600;margin:20px 2px 10px">当前标签</div>
+            <div class="tags">${state.tags.map(t => `<span class="tag">${esc(t)} <button onclick="deleteTag('${esc(t)}')" style="color:#b3a89b">✕</button></span>`).join('')}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function addTag() {
+      const el = document.getElementById('new-tag');
+      const tag = el.value.trim();
+      if (!tag) return;
+      if (!state.tags.includes(tag)) state.tags.push(tag);
+      persist();
+      renderTags();
+    }
+
+    function deleteTag(tag) {
+      state.tags = state.tags.filter(t => t !== tag);
+      persist();
+      renderTags();
+    }
+
+    function exportData() {
+      const data = JSON.stringify({ meals: state.meals, restaurants: state.restaurants, want: state.want, drafts: state.drafts, settings: state.settings, tags: state.tags, feedback: state.feedback }, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '回味美食数据备份.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      toast('已导出数据备份');
+    }
+
+    function importData(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (confirm('导入会覆盖当前数据，确定继续吗？')) {
+            state.meals = data.meals || [];
+            state.restaurants = data.restaurants || [];
+            state.want = data.want || [];
+            state.drafts = data.drafts || [];
+            state.settings = data.settings || { defaultPrivate: true };
+            state.tags = data.tags || defaultTags;
+            state.feedback = data.feedback || [];
+            persist();
+            go('#me');
+            toast('导入成功');
+          }
+        } catch (err) {
+          toast('导入失败，文件格式不正确');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function showShare(meal) {
+      const r = restaurant(meal.restaurantId);
+      const summary = `${r.name}｜${fmtDate(meal.date)}${meal.mealType}：${meal.note || '这顿饭值得记录'}`;
+      $modal.className = 'modal-root active';
+      $modal.innerHTML = `
+        <div class="modal-card" style="padding:0;overflow:hidden">
+          <div class="share-card" id="share-card">
+            <div class="share-cover" style="background:linear-gradient(135deg,#e4572e,#f4a261)">${meal.photos && meal.photos.length ? `<img src="${meal.photos[0]}" alt="">` : esc(r.cover)}<div class="brand">回味 · 美食手账</div><div class="rec">😋 ${esc(mealRating(meal) || '值得记录')}</div></div>
+            <div class="share-content">
+              <h2>${esc(r.name)}</h2>
+              <div class="date">${fmtDate(meal.date)} · ${esc(meal.mealType)} · ${meal.numPeople || 0} 人 · ¥${meal.totalAmount || 0}</div>
+              <p class="note">${esc(meal.note || '')}</p>
+              ${meal.photos && meal.photos.length > 1 ? `<div class="share-photos">${meal.photos.slice(1, 4).map(p => `<div class="mini"><img src="${p}" alt=""></div>`).join('')}<span>可添加多张照片</span></div>` : ''}
+              <div class="share-dishes">${meal.dishes.map(d => `<div class="share-dish"><div class="thumb">${d.photoData ? `<img src="${d.photoData}" alt="">` : esc(d.photoEmoji)}</div><b>${esc(d.name)}</b><span>${esc(d.tags.join(' / '))}</span></div>`).join('')}</div>
+              <div class="share-actions">
+                <button class="save" onclick="saveShareImage()">保存图片</button>
+                <button class="later" onclick="shareLink('${encodeURIComponent(summary)}')">发给朋友</button>
+                <button class="later" onclick="copyShareText('${encodeURIComponent(summary)}')">复制链接</button>
+                <button class="later" onclick="closeModal();go('#home')">关闭</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function saveShareImage() {
+      const node = document.getElementById('share-card');
+      if (!node) return;
+      if (!window.html2canvas) {
+        toast('保存图片需要联网加载组件');
+        return;
+      }
+      html2canvas(node, { backgroundColor: '#fffdf9', scale: 2 }).then(canvas => {
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = '回味用餐卡片.png';
+        a.click();
+        toast('图片已保存');
+      }).catch(() => toast('保存失败，请重试'));
+    }
+
+    function copyShareText(encoded) {
+      const text = decodeURIComponent(encoded);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => toast('已复制分享内容')).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      toast('已复制分享内容');
+    }
+
+    function shareLink(encoded) {
+      const text = decodeURIComponent(encoded);
+      if (navigator.share) {
+        navigator.share({ title: '回味美食卡片', text }).catch(() => {});
+      } else {
+        copyShareText(encoded);
+      }
+    }
+
+    function route() {
+      const hash = location.hash || '#home';
+      const parts = hash.replace(/^#\/?/, '').split('/');
+      const name = parts[0] || 'home';
+      const param = decodeURIComponent(parts[1] || '');
+      if (name === 'home') renderHome();
+      else if (name === 'record') renderRecord(param);
+      else if (name === 'rank') renderRank();
+      else if (name === 'me') renderMe();
+      else if (name === 'restaurant') renderRestaurant(param);
+      else if (name === 'dish') renderDish(param);
+      else if (name === 'drafts') renderDrafts();
+      else if (name === 'feedback') renderFeedback();
+      else if (name === 'checked') renderChecked();
+      else if (name === 'stats') renderStats();
+      else if (name === 'tags') renderTags();
+      else renderHome();
+      window.scrollTo(0, 0);
+    }
+
+    window.addEventListener('hashchange', route);
+    window.addEventListener('load', route);
+  </script>
+</body>
+</html>
